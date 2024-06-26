@@ -1,0 +1,7 @@
+{
+  "GEXSCOPE-FLVDJ-V1": {
+    "pattern": "U9C8L16C8L16C8",
+    "bc": ["bc.txt", "bc.txt", "bc.txt"],
+    "linker": ["linker1.txt", "linker2.txt"]
+  }
+}
