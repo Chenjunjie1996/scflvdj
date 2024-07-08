@@ -61,7 +61,6 @@ if __name__ == "__main__":
     raw_reads = 0
     valid_reads = 0
     corrected_reads = 0
-    barcode_read_counter = defaultdict(int)
     for fq1, fq2 in zip(fq1_list, fq2_list):
         fq1 = pyfastx.Fastx(fq1)
         fq2 = pyfastx.Fastx(fq2)
@@ -78,10 +77,8 @@ if __name__ == "__main__":
                 bc = corrected_seq
                 read_name = f"{bc}:{umi}:{raw_reads}"
                 qual1 = "F" * len(bc + umi)
-                barcode_read_counter[bc] += 1
-                if barcode_read_counter[bc] <= 40000:
-                    outdict[1].write(utils.fastq_str(read_name, bc + umi, qual1))
-                    outdict[2].write(utils.fastq_str(read_name, seq2, qual2))
+                outdict[1].write(utils.fastq_str(read_name, bc + umi, qual1))
+                outdict[2].write(utils.fastq_str(read_name, seq2, qual2))
 
     outdict[1].close()
     outdict[2].close()
@@ -91,27 +88,3 @@ if __name__ == "__main__":
     metrics["Valid Reads"] = utils.get_frac(valid_reads / raw_reads)
     metrics["Corrected Barcodes"] = utils.get_frac(corrected_reads / valid_reads)
     utils.write_json(metrics, fn)
-
-    # split fastq
-    barcode_list = list(barcode_read_counter.keys())
-    random.shuffle(barcode_list)
-    barcode_num = len(barcode_list)
-    step = barcode_num // SPLIT_N_CHUNKS
-    split_barcodes = [barcode_list[i:i+step] for i in range(0, barcode_num, step)]
-    split_barcodes = [set(i) for i in split_barcodes]
-
-    fq1_list = [utils.openfile(f"temp/temp{i}_R1.fq.gz", "wt") for i in range(SPLIT_N_CHUNKS)]
-    fq2_list = [utils.openfile(f"temp/temp{i}_R2.fq.gz", "wt") for i in range(SPLIT_N_CHUNKS)]
-    fq1 = pyfastx.Fastx(f"{args.sample}_R1.fq.gz")
-    fq2 = pyfastx.Fastx(f"{args.sample}_R2.fq.gz")
-    for (name1, seq1, qual1), (name2, seq2, qual2) in zip(fq1, fq2):
-        bc = name1.split(':')[0]
-        for i in range(SPLIT_N_CHUNKS):
-            if bc in split_barcodes[i]:
-                fq1_list[i].write(utils.fastq_str(name1, seq1, qual1))
-                fq2_list[i].write(utils.fastq_str(name2, seq2, qual2))
-                break
-
-    for i in range(SPLIT_N_CHUNKS):
-        fq1_list[i].close()
-        fq2_list[i].close()

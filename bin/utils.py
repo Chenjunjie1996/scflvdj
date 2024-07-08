@@ -97,3 +97,8 @@ def format_value(value, total=None):
         fraction = round(value / total * 100, 2)
         display += f"({fraction}%)"
     return display
+
+
+def dump_dict_to_json(d, json_file):
+    with open(json_file, 'w') as f:
+        json.dump(d, f, indent=4)
