@@ -77,10 +77,10 @@ workflow scflvdj {
         ch_ref = "${projectDir}/assets/ref/${imgt_name}"
     } else {
         MKVDJREF ( 
-            params.reference_name,
+            params.imgt_name,
         )
         ch_versions = ch_versions.mix(MKVDJREF.out.versions.first())
-        ch_ref = MKVDJREF.out.reference_name
+        ch_ref = MKVDJREF.out.imgt_name
     }
 
     // CELLRANGER VDJ

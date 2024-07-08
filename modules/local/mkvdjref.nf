@@ -8,10 +8,10 @@ process MKVDJREF {
     path fasta          // optional
     path gtf            // optional
     path seqs           // optional
-    val reference_name
+    val imgt_name
 
     output:
-    path "${reference_name}", emit: reference
+    path "${imgt_name}", emit: reference
     path "versions.yml"     , emit: versions
 
     when:
@@ -30,7 +30,7 @@ process MKVDJREF {
     """
     cellranger \\
         mkvdjref \\
-        --genome=$reference_name \\
+        --genome=$imgt_name \\
         ${gtf_in} \\
         ${fasta_in} \\
         ${seqs_in} \\
@@ -46,10 +46,10 @@ process MKVDJREF {
 
     stub:
     """
-    mkdir ${reference_name}
-    mkdir ${reference_name}/fasta
-    echo stub > ${reference_name}/fasta/regions.fa
-    echo stub > ${reference_name}/reference.json
+    mkdir ${imgt_name}
+    mkdir ${imgt_name}/fasta
+    echo stub > ${imgt_name}/fasta/regions.fa
+    echo stub > ${imgt_name}/reference.json
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
