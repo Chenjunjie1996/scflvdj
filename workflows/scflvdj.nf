@@ -8,14 +8,22 @@ include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 
 include { EXTRACT                } from '../modules/local/extract'
 include { MULTIQC                } from '../modules/local/multiqc_sgr'
-include { IMGT_DOWNLOAD          } from '../modules/local/imgt_download'
-include { TRUST4                 } from '../modules/local/trust4'
+include { CONVERT                } from '../modules/local/convert'
+include { MKVDJREF               } from '../modules/local/mkvdjref'
+include { CELLRANGER             } from '../modules/local/cellranger'
 include { SUMMARIZE              } from '../modules/local/summarize/summarize'
 include { MATCH                  } from '../modules/local/match/match'
 include { paramsSummaryMap       } from 'plugin/nf-validation'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_scflvdj_pipeline'
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN MAIN WORKFLOW
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -58,64 +66,44 @@ workflow scflvdj {
     ch_versions = ch_versions.mix(EXTRACT.out.versions.first())
     ch_multiqc_files = ch_multiqc_files.mix(EXTRACT.out.json.collect{it[1]})
 
+    // convert
+    CONVERT (
+        EXTRACT.out.out_reads
+    )
+
     // ref
     def imgt_name = params.imgt_name
     if (imgt_name == 'Homo_sapiens' || imgt_name == 'Mus_musculus') {
-        ch_ref = "${projectDir}/assets/imgt_ref/${imgt_name}_IMGT+C.fa"
+        ch_ref = "${projectDir}/assets/ref/${imgt_name}"
     } else {
-        IMGT_DOWNLOAD ( 
-            params.imgt_name,
+        MKVDJREF ( 
+            params.reference_name,
         )
-        ch_versions = ch_versions.mix(IMGT_DOWNLOAD.out.versions.first())
-        ch_ref = IMGT_DOWNLOAD.out.ref
+        ch_versions = ch_versions.mix(MKVDJREF.out.versions.first())
+        ch_ref = MKVDJREF.out.reference_name
     }
 
-    // ch_input = Channel.fromFilePairs("/workspace/gitpod/nf-training/scflvdj_test_data/mouse_TCR/prefix*_R{1,2}.fq.gz")
-    // ch_input = Channel.fromFilePairs("${EXTRACT.out.out_temp_dir}/*_R{1,2}.fq.gz")
-    // ch_input | view
-    // EXTRACT.out.out_temp_dir.view()
-    // ch_input =  Channel.fromFilePairs("./*temp*_R{1,2}.fq.gz")
-    // EXTRACT.out.out_temp_reads.multiMap { meta, fastq ->
-    //     reads: [meta, fastq]
-    // }.set {ch_input}
-    // ch_input = ["temp0", ["$EXTRACT.out.out_temp_dir/temp0_R1.fq.gz", "$EXTRACT.out.out_temp_dir/temp0_R2.fq.gz"]]
-    // EXTRACT.out.out_temp_reads.view()
-    // ch_input = channel.fromFilePairs("${EXTRACT.out.out_temp_dir}".toString())
-    Channel.of(
-        file("${EXTRACT.out.out_temp_dir}/temp0_R1.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp0_R2.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp1_R1.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp1_R2.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp2_R1.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp2_R2.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp3_R1.fq.gz"),
-        file("${EXTRACT.out.out_temp_dir}/temp3_R2.fq.gz")
-    )
-    .map { it -> [it.name.split('_')[0], it] }
-    .groupTuple()
-    .set{ ch_input }
-
-    // trust4
-    TRUST4 (
-        ch_input,
+    // CELLRANGER VDJ
+    CELLRANGER (
+        CONVERT.out.convert_fq,
         ch_ref,
     )
-    ch_versions = ch_versions.mix(TRUST4.out.versions.first())
+    ch_versions = ch_versions.mix(CELLRANGER.out.versions.first())
 
     // SUMMARIZE
     if (params.seqtype == 'BCR' ) {
-        barcode_report = TRUST4.out.barcode_report_b
+        barcode_report = MERGE.out.barcode_report_b
     } else {
-        barcode_report = TRUST4.out.barcode_report_t
+        barcode_report = MERGE.out.barcode_report_t
     }
     SUMMARIZE (
         EXTRACT.out.out_reads,
         params.seqtype,
         params.coef,
         params.expected_target_cell_num,
-        TRUST4.out.assembled_reads,
-        TRUST4.out.filter_report_tsv,
-        TRUST4.out.annot_fa,
+        MERGE.out.assembled_reads,
+        MERGE.out.filter_report_tsv,
+        MERGE.out.annot_fa,
         barcode_report
     )
     ch_multiqc_files = ch_multiqc_files.mix(SUMMARIZE.out.json.collect{it[1]})
