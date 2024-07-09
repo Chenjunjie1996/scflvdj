@@ -21,7 +21,7 @@ def gen_sgr_tenx_dict(fq2, whitelist_10x):
     whitelist_10x_fh = open(whitelist_10x, 'r')
     
     fq2 = pyfastx.Fastx(fq2)
-    for (name, seq, qual) in fq2:
+    for name, seq, qual in fq2:
         sgr_barcode = name.split(':')[0]
         count_dict[sgr_barcode] += 1
 
@@ -60,7 +60,7 @@ def write_fq1(fq2, sample):
     out_fq1 = utils.openfile(f"convert_fq/{sample}_S1_L001_R1_001.fastq.gz")
 
     fq2 = pyfastx.Fastx(fq2)
-    for (name, seq, qual) in fq2:
+    for name, seq, qual in fq2:
         attrs = name.split(':')
         sgr_barcode, sgr_umi = attrs[0], attrs[1]
         new_seq1, new_qual1 = convert_seq(sgr_barcode, sgr_umi)
