@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import pandas as pd
 import pysam
 import argparse
@@ -14,7 +16,7 @@ def gen_vdj_metric(seqtype):
         Get Productive V-J Spanning_Pair metric from annotation file
         Return productive chain pair number. eg: TRA/TRB or IGH/IGL, IGH/IGK.
         """
-        df_productive = df[df["productive"] == True]
+        df_productive = df[df["productive"]]
         
         if seqtype == "BCR":
             df_chain_heavy = df_productive[(df_productive["chain"] == "IGH")] 
@@ -26,9 +28,9 @@ def gen_vdj_metric(seqtype):
         for _df in [df_chain_heavy, df_chain_light]:
             _df.drop_duplicates(["barcode"], inplace=True)
 
-        VJ_Spanning_Pair_Cells = pd.merge(df_chain_heavy, df_chain_light, on="barcode", how="inner")
+        vj_spanning_pair_cells = pd.merge(df_chain_heavy, df_chain_light, on="barcode", how="inner")
         
-        return VJ_Spanning_Pair_Cells.shape[0]
+        return vj_spanning_pair_cells.shape[0]
 
     df = pd.read_csv("matched_contig_annotations.csv")
     data_dict = {}
@@ -46,8 +48,8 @@ def gen_vdj_metric(seqtype):
 
     for pair in chain_pairs:
         chain1, chain2 = pair.split("_")[0], pair.split("_")[1]
-        cbs1 = set(df[(df["productive"]==True)&(df["chain"]==chain1)].barcode)
-        cbs2 = set(df[(df["productive"]==True)&(df["chain"]==chain2)].barcode)
+        cbs1 = set(df[(df["productive"]) & (df["chain"]==chain1)].barcode)
+        cbs2 = set(df[(df["productive"]) & (df["chain"]==chain2)].barcode)
         paired_cbs = len(cbs1.intersection(cbs2))
         data_dict.update(
             {f"Cells With Productive V-J Spanning ({chain1}, {chain2}) Pair": utils.get_frac(paired_cbs / cell_nums)}
@@ -93,7 +95,7 @@ def gen_matched_clonotypes(clonotype_csv):
     raw_clonotypes= pd.read_csv(clonotype_csv, sep=",", index_col=None)
     raw_clonotypes.drop(["frequency", "proportion"], axis=1, inplace=True)
     df_match = pd.read_csv("matched_contig_annotations.csv")
-    df_match = df_match[df_match["productive"] == True]
+    df_match = df_match[df_match["productive"]]
         
     # Count frequency and proportion
     df_match = df_match.rename(columns={"raw_clonotype_id":"clonotype_id"})\
