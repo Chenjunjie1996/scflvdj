@@ -71,14 +71,14 @@ def gen_vdj_metric(seqtype):
     return data_dict
 
 
-def gen_matched_result(annot_csv, contig_fasta, match_cell_barcodes):
+def gen_matched_result(sample, annot_csv, contig_fasta, match_cell_barcodes):
 
     df_annotation = pd.read_csv(annot_csv)
     df_match = df_annotation[df_annotation.barcode.isin(match_cell_barcodes)]
-    df_match.to_csv("matched_contig_annotations.csv", sep=",", index=False)
+    df_match.to_csv(f"{sample}_matched_contig.csv", sep=",", index=False)
 
     fasta_fh = pysam.FastxFile(contig_fasta)
-    match_fasta = open("filtered_contig.fasta", "w")
+    match_fasta = open(f"{sample}_matched_contig.fasta", "w")
     for entry in fasta_fh:
         name = entry.name
         attrs = name.split("_")
@@ -90,7 +90,7 @@ def gen_matched_result(annot_csv, contig_fasta, match_cell_barcodes):
     match_fasta.close()
 
 
-def gen_matched_clonotypes(clonotype_csv):
+def gen_matched_clonotypes(sample, clonotype_csv):
 
     raw_clonotypes= pd.read_csv(clonotype_csv, sep=",", index_col=None)
     raw_clonotypes.drop(["frequency", "proportion"], axis=1, inplace=True)
@@ -105,15 +105,17 @@ def gen_matched_clonotypes(clonotype_csv):
     df_match["proportion"] = df_match["frequency"] / df_match["frequency"].sum()
         
     df_match = pd.merge(df_match, raw_clonotypes, on="clonotype_id")
-    df_match.to_csv("matched_clonotypes.csv", sep=",", index=False)
+    df_match.to_csv(f"{sample}_matched_clonotypes.csv", sep=",", index=False)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--sample", required=True)
     parser.add_argument("--seqtype", required=True)
     parser.add_argument("--clonotype_csv", required=True)
     parser.add_argument("--annot_csv", required=True)
     parser.add_argument("--contig_fasta", required=True)
+    parser.add_argument("--match_barcode_file", required=True)
     args = parser.parse_args()
 
     if args.seqtype == "BCR":
@@ -124,8 +126,8 @@ if __name__ == "__main__":
         paired_groups = ["TRA_TRB"]
     
     match_barcode = set(utils.read_one_col(args.match_barcode_file))
-    gen_matched_result(args.annot_csv, args.contig_fasta, match_barcode)
-    gen_matched_clonotypes(args.clonotype_csv)
+    gen_matched_result(args.sample, args.annot_csv, args.contig_fasta, match_barcode)
+    gen_matched_clonotypes(args.sample, args.clonotype_csv)
     data_dict = gen_vdj_metric(args.seqtype)
     fn = f"{args.sample}.{ASSAY}.match.stats.json"
     utils.write_json(data_dict, fn)

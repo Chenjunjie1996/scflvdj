@@ -77,7 +77,7 @@ def gzip_fq2(fq2, sample):
 
 def dump_tenx_sgr_barcode_json(sgr_tenx):
     tenx_sgr = {}
-    barcode_convert_json = f"barcode_convert.json"
+    barcode_convert_json = "barcode_convert.json"
     for sgr, tenx in sgr_tenx.items():
         tenx_sgr[tenx] = sgr
 

@@ -77,7 +77,7 @@ workflow scflvdj {
         ch_ref = "${projectDir}/assets/ref/${imgt_name}"
     } else {
         MKVDJREF ( 
-            params.imgt_name,
+            params.imgt_name
         )
         ch_versions = ch_versions.mix(MKVDJREF.out.versions.first())
         ch_ref = MKVDJREF.out.imgt_name
@@ -91,29 +91,20 @@ workflow scflvdj {
     ch_versions = ch_versions.mix(CELLRANGER.out.versions.first())
 
     // SUMMARIZE
-    if (params.seqtype == 'BCR' ) {
-        barcode_report = MERGE.out.barcode_report_b
-    } else {
-        barcode_report = MERGE.out.barcode_report_t
-    }
+    ch_merge = CELLRANGER.out.summary.join(CELLRANGER.out.clonotype).join(CELLRANGER.out.annotation)
+                .join(CELLRANGER.out.fasta).join(CONVERT.out.json)
     SUMMARIZE (
-        EXTRACT.out.out_reads,
         params.seqtype,
-        params.coef,
-        params.expected_target_cell_num,
-        MERGE.out.assembled_reads,
-        MERGE.out.filter_report_tsv,
-        MERGE.out.annot_fa,
-        barcode_report
+        ch_merge
     )
     ch_multiqc_files = ch_multiqc_files.mix(SUMMARIZE.out.json.collect{it[1]})
 
     // Match
+    ch_merge = SUMMARIZE.out.clonotype.join(SUMMARIZE.out.annotation).join(SUMMARIZE.out.fasta)
+                .join(ch_multi.match_barcode)
     MATCH (
-        ch_multi.match_barcode,
         params.seqtype,
-        SUMMARIZE.out.filter_contig_csv,
-        SUMMARIZE.out.filter_contig_fa
+        ch_merge
     )
     ch_multiqc_files = ch_multiqc_files.mix(SUMMARIZE.out.json.collect{it[1]})
 

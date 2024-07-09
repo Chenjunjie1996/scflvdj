@@ -6,24 +6,24 @@ process MATCH {
     container "quay.io/singleron-rd/sccore:v0.0.0"
 
     input:
-    tuple val(meta), path(match_barcode)
     val seqtype
-    path filter_contig_csv
-    path filter_contig_fa
+    tuple val(meta), path(clonotype), path(annotation), path(fasta), path(match_barcode)
 
     output:
     tuple val(meta), path("*.json"), emit: json
-    path "${meta.id}_matched_contig.csv", emit: match_contig_csv
-    path "${meta.id}_matched_contig.fasta", emit: match_contig_fa
-    // path "${meta.id}_matched_clonotypes.csv", emit: match_clonotype
+    path "${meta.id}.count.txt", emit: umi_count_txt
+    path "${meta.id}_matched_clonotypes.csv", emit: clonotype
+    path "${meta.id}_matched_contig.csv", emit: annotation
+    path "${meta.id}_matched_contig.fasta", emit: fasta
 
     script:
     """
     match.py \\
         --sample ${meta.id} \\
-        --contig_csv $filter_contig_csv \\
-        --contig_fasta $filter_contig_fa \\
         --seqtype ${seqtype} \\
-        --match_barcode_file $match_barcode
+        --clonotype_csv ${clonotype} \\
+        --annot_csv ${annotation} \\
+        --contig_fasta ${fasta} \\
+        --match_barcode_file ${match_barcode}
     """
 }

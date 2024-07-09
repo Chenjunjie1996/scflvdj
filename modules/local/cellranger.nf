@@ -1,15 +1,19 @@
-process CELLRANGER_VDJ {
+process CELLRANGER {
     tag "${meta.id}"
     label 'process_high'
 
     container "nf-core/cellranger:8.0.0"
 
     input:
-    tuple val(meta), path(reads)
+    tuple val(meta), path(fq_dir)
     path  reference
 
     output:
-    tuple val(meta), path("**/outs/**"), emit: outs
+    // tuple val(meta), path("**/outs/**"), emit: outs
+    tuple val(meta), path("**/outs/metrics_summary.csv"), emit: summary
+    tuple val(meta), path("**/outs/clonotypes.csv"), emit: clonotype
+    tuple val(meta), path("**/outs/filtered_contig_annotations.csv"), emit: annotation
+    tuple val(meta), path("**/outs/filtered_contig.fasta"), emit: fasta
     path "versions.yml"                , emit: versions
 
     when:
@@ -26,7 +30,7 @@ process CELLRANGER_VDJ {
     cellranger \\
         vdj \\
         --id='${prefix}' \\
-        --fastqs=. \\
+        --fastqs=${fq_dir} \\
         --reference=${reference} \\
         --localcores=${task.cpus} \\
         --localmem=${task.memory.toGiga()} \\

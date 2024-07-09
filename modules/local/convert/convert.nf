@@ -9,8 +9,8 @@ process CONVERT {
     tuple val(meta), path(reads)
 
     output:
-    path "convert_fq",  emit: convert_fq
-    tuple val(meta), path("*.json"),  emit: json
+    tuple val(meta), path "convert_fq",  emit: convert_fq
+    tuple val(meta), path("barcode_convert.json"),  emit: json
     path  "versions.yml" , emit: versions
 
     script:

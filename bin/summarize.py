@@ -155,16 +155,16 @@ def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
     utils.write_json(data_dict, fn)
     
     
-def convert_barcode_to_sgr(tenx_sgr, df_annotation, contig_fasta, clonotype_csv):
+def convert_barcode_to_sgr(sample, tenx_sgr, df_annotation, contig_fasta, clonotype_csv):
         
     df_annotation["barcode"] = df_annotation["barcode"].apply(lambda x: tenx_sgr[x.split("-")[0]])
     df_annotation["contig_id"] = df_annotation["contig_id"].apply(lambda x: 
         tenx_sgr[x.split("-")[0]]+ "_" + x.split("_")[1] +"_" + x.split("_")[2])
 
-    df_annotation.to_csv("filtered_contig_annotations.csv", sep=",", index=False)
+    df_annotation.to_csv(f"{sample}_filtered_contig.csv", sep=",", index=False)
     
     tenx_fasta_fh = pysam.FastxFile(contig_fasta)
-    with open("filtered_contig.fasta", "w") as f:
+    with open(f"{sample}_filtered_contig.fasta", "w") as f:
         for entry in tenx_fasta_fh:
             name = entry.name
             seq = entry.sequence
@@ -172,7 +172,7 @@ def convert_barcode_to_sgr(tenx_sgr, df_annotation, contig_fasta, clonotype_csv)
             new_name = tenx_sgr[attrs[0].split("-")[0]] + "_" + attrs[1] + "_" + attrs[2]
             f.write(f">{new_name}\n{seq}\n")
         
-    cmd = f"cp {clonotype_csv} ."
+    cmd = f"cp {clonotype_csv} {sample}_clonotypes.csv"
     os.system(cmd)
 
 
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     with open(args.barcode_convert_json, "r") as f:
         tenx_sgr = json.load(f)
    
-    convert_barcode_to_sgr(tenx_sgr, df_annotation, args.contig_fasta, args.clonotype_csv)
+    convert_barcode_to_sgr(args.sample, tenx_sgr, df_annotation, args.contig_fasta, args.clonotype_csv)
     gen_vdj_metric(args.metrics_csv, df_annotation, args.seqtype)
     
     plot_data = barcode_rank_plot(args.sample, df_annotation, args.bam, tenx_sgr)
