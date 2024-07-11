@@ -8,7 +8,7 @@ include { FASTQC                 } from '../modules/nf-core/fastqc/main'
 
 include { EXTRACT                } from '../modules/local/extract'
 include { MULTIQC                } from '../modules/local/multiqc_sgr'
-include { CONVERT                } from '../modules/local/convert'
+include { CONVERT                } from '../modules/local/convert/convert'
 include { MKVDJREF               } from '../modules/local/mkvdjref'
 include { CELLRANGER             } from '../modules/local/cellranger'
 include { SUMMARIZE              } from '../modules/local/summarize/summarize'
@@ -68,7 +68,8 @@ workflow scflvdj {
 
     // convert
     CONVERT (
-        EXTRACT.out.out_reads
+        EXTRACT.out.out_reads,
+        "${projectDir}/assets/whitelist/737K-august-2016.txt"
     )
 
     // ref

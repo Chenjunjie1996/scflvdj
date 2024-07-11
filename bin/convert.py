@@ -56,28 +56,28 @@ def convert_seq(sgr_tenx, barcode_sgr, umi_sgr):
     return new_seq1, new_qual1
     
     
-def write_fq1(fq2, sample):
-    out_fq1 = utils.openfile(f"convert_fq/{sample}_S1_L001_R1_001.fastq.gz")
+def write_fq1(sgr_tenx, fq2, sample):
+    out_fq1 = utils.openfile(f"{sample}_convert_fq/{sample}_S1_L001_R1_001.fastq.gz", "wt")
 
     fq2 = pyfastx.Fastx(fq2)
     for name, seq, qual in fq2:
         attrs = name.split(':')
         sgr_barcode, sgr_umi = attrs[0], attrs[1]
-        new_seq1, new_qual1 = convert_seq(sgr_barcode, sgr_umi)
+        new_seq1, new_qual1 = convert_seq(sgr_tenx, sgr_barcode, sgr_umi)
         out_fq1.write(f'@{name}\n{new_seq1}\n+\n{new_qual1}\n')
 
     out_fq1.close() 
 
 
 def gzip_fq2(fq2, sample):
-    out_fq2_file = f"convert_fq/{sample}_S1_L001_R2_001.fastq.gz"
+    out_fq2_file = f"{sample}_convert_fq/{sample}_S1_L001_R2_001.fastq.gz"
     cmd = f"gzip -c {fq2} > {out_fq2_file}"
     os.system(cmd)
     
 
-def dump_tenx_sgr_barcode_json(sgr_tenx):
+def dump_tenx_sgr_barcode_json(sample, sgr_tenx):
     tenx_sgr = {}
-    barcode_convert_json = "barcode_convert.json"
+    barcode_convert_json = f"{sample}.barcode_convert.json"
     for sgr, tenx in sgr_tenx.items():
         tenx_sgr[tenx] = sgr
 
@@ -88,11 +88,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--sample", required=True)
     parser.add_argument("--fq2", required=True)
-    parser.add_argument("--assets_dir", required=True)
+    parser.add_argument("--whitelist_tenx", required=True)
     args = parser.parse_args()
-    
-    whitelist_10x = f"{args.assets_dir}/whitlist/737K-august-2016.txt"
-    sgr_tenx = gen_sgr_tenx_dict(args.fq2, whitelist_10x)
-    write_fq1(args.fq2, args.sample)
+
+    sgr_tenx = gen_sgr_tenx_dict(args.fq2, args.whitelist_tenx)
+    write_fq1(sgr_tenx, args.fq2, args.sample)
     gzip_fq2(args.fq2, args.sample)
-    dump_tenx_sgr_barcode_json(sgr_tenx)
+    dump_tenx_sgr_barcode_json(args.sample, sgr_tenx)
