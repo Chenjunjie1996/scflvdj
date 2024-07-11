@@ -10,10 +10,11 @@ process CELLRANGER {
 
     output:
     // tuple val(meta), path("**/outs/**"), emit: outs
-    tuple val(meta), path("**/outs/metrics_summary.csv"), emit: summary
-    tuple val(meta), path("**/outs/clonotypes.csv"), emit: clonotype
-    tuple val(meta), path("**/outs/filtered_contig_annotations.csv"), emit: annotation
-    tuple val(meta), path("**/outs/filtered_contig.fasta"), emit: fasta
+    tuple val(meta), path("${meta.id}/outs/metrics_summary.csv"), emit: summary
+    tuple val(meta), path("${meta.id}/outs/clonotypes.csv"), emit: clonotype
+    tuple val(meta), path("${meta.id}/outs/filtered_contig_annotations.csv"), emit: annotation
+    tuple val(meta), path("${meta.id}/outs/filtered_contig.fasta"), emit: fasta
+    tuple val(meta), path("${meta.id}/outs/all_contig.bam"), emit: bam
     path "versions.yml"                , emit: versions
 
     when:

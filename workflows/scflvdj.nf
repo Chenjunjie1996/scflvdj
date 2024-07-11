@@ -93,7 +93,7 @@ workflow scflvdj {
 
     // SUMMARIZE
     ch_merge = CELLRANGER.out.summary.join(CELLRANGER.out.clonotype).join(CELLRANGER.out.annotation)
-                .join(CELLRANGER.out.fasta).join(CONVERT.out.json)
+                .join(CELLRANGER.out.fasta).join(CELLRANGER.out.bam).join(CONVERT.out.json)
     SUMMARIZE (
         params.seqtype,
         ch_merge
