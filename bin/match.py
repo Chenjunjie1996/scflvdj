@@ -7,7 +7,7 @@ import argparse
 import utils
 from __init__ import ASSAY
 
-def gen_vdj_metric(seqtype):
+def gen_vdj_metric(df, seqtype):
     """
     Add vdj metrics.
     """
@@ -32,7 +32,6 @@ def gen_vdj_metric(seqtype):
         
         return vj_spanning_pair_cells.shape[0]
 
-    df = pd.read_csv("matched_contig_annotations.csv")
     data_dict = {}
     
     if seqtype == "BCR":
@@ -88,13 +87,14 @@ def gen_matched_result(sample, annot_csv, contig_fasta, match_cell_barcodes):
             seq = entry.sequence
             match_fasta.write(f">{new_name}\n{seq}\n")
     match_fasta.close()
+    
+    return df_match
 
 
-def gen_matched_clonotypes(sample, clonotype_csv):
+def gen_matched_clonotypes(sample, df_match, clonotype_csv):
 
     raw_clonotypes= pd.read_csv(clonotype_csv, sep=",", index_col=None)
     raw_clonotypes.drop(["frequency", "proportion"], axis=1, inplace=True)
-    df_match = pd.read_csv("matched_contig_annotations.csv")
     df_match = df_match[df_match["productive"]]
         
     # Count frequency and proportion
@@ -126,9 +126,9 @@ if __name__ == "__main__":
         paired_groups = ["TRA_TRB"]
     
     match_barcode = set(utils.read_one_col(args.match_barcode_file))
-    gen_matched_result(args.sample, args.annot_csv, args.contig_fasta, match_barcode)
-    gen_matched_clonotypes(args.sample, args.clonotype_csv)
-    data_dict = gen_vdj_metric(args.seqtype)
+    df_match = gen_matched_result(args.sample, args.annot_csv, args.contig_fasta, match_barcode)
+    gen_matched_clonotypes(args.sample, df_match, args.clonotype_csv)
+    data_dict = gen_vdj_metric(df_match, args.seqtype)
     fn = f"{args.sample}.{ASSAY}.match.stats.json"
     utils.write_json(data_dict, fn)
     

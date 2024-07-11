@@ -11,7 +11,6 @@ process MATCH {
 
     output:
     tuple val(meta), path("*.json"), emit: json
-    path "${meta.id}.count.txt", emit: umi_count_txt
     path "${meta.id}_matched_clonotypes.csv", emit: clonotype
     path "${meta.id}_matched_contig.csv", emit: annotation
     path "${meta.id}_matched_contig.fasta", emit: fasta
