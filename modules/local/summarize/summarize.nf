@@ -7,14 +7,14 @@ process SUMMARIZE {
 
     input:
     val seqtype
-    tuple val(meta), path(summary), path(clonotype), path(annotation), path(fasta), path(json)
+    tuple val(meta), path(summary), path(clonotype), path(annotation), path(fasta), path(bam), path(json)
 
     output:
     tuple val(meta), path("*.json"), emit: json
-    path "${meta.id}.count.txt", emit: umi_count_txt
-    path "${meta.id}_clonotypes.csv", emit: clonotype
-    path "${meta.id}_filtered_contig.csv", emit: annotation
-    path "${meta.id}_filtered_contig.fasta", emit: fasta
+    tuple val(meta), path("${meta.id}.count.txt"), emit: umi_count_txt
+    tuple val(meta), path("${meta.id}_clonotypes.csv"), emit: clonotype
+    tuple val(meta), path("${meta.id}_filtered_contig.csv"), emit: annotation
+    tuple val(meta), path("${meta.id}_filtered_contig.fasta"), emit: fasta
     
     script:
 
@@ -26,7 +26,8 @@ process SUMMARIZE {
         --clonotype_csv ${clonotype} \\
         --annot_csv ${annotation} \\
         --contig_fasta ${fasta} \\
-        --metrics_csv ${summary}
+        --metrics_csv ${summary} \\
+        --bam ${bam}
 
 
     cat <<-END_VERSIONS > versions.yml

@@ -187,6 +187,7 @@ if __name__ == "__main__":
     parser.add_argument("--annot_csv", required=True)
     parser.add_argument("--contig_fasta", required=True)
     parser.add_argument("--metrics_csv", required=True)
+    parser.add_argument("--bam", required=True)
     args = parser.parse_args()
 
     df_annotation = pd.read_csv(args.annot_csv, sep=",", index_col=None)
