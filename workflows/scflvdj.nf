@@ -76,7 +76,7 @@ workflow scflvdj {
     if (imgt_name == 'Homo_sapiens' || imgt_name == 'Mus_musculus') {
         ch_ref = "${projectDir}/assets/ref/${imgt_name}"
     } else {
-        MKVDJREF ( 
+        MKVDJREF (
             params.imgt_name
         )
         ch_versions = ch_versions.mix(MKVDJREF.out.versions.first())

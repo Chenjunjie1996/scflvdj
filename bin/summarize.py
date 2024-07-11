@@ -100,6 +100,8 @@ def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
         chain_pairs = ["TRA_TRB"]
 
     data_dict = {}
+    for k, v in metrics_dict.items():
+        metrics_dict[k] = str(v).replace(',', '').replace('%', '')
     # mapping
     mapping_metrics_list = ["Reads Mapped to Any V(D)J Gene"]
     for chain in chains:
@@ -107,17 +109,17 @@ def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
         mapping_metrics_list.append(name)
         
     for name in mapping_metrics_list:
-        data_dict.update({name: metrics_dict[name]})
+        data_dict.update({name: float(metrics_dict[name])})
 
     # cells
     cell_metrics_list = [
         "Estimated Number of Cells",
         "Fraction Reads in Cells",
-        "Mean Reads per Cell",
-        "Mean Used Reads per Cell"
+        "Mean Read Pairs per Cell",
+        "Mean Used Read Pairs per Cell"
     ]
     for name in cell_metrics_list:
-        data_dict.update({name: metrics_dict[name]})
+        data_dict.update({name: float(metrics_dict[name])})
         
     for chain in chains:
         name = f"Median used {chain} UMIs per Cell"
@@ -149,7 +151,7 @@ def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
         annotation_metrics_list.extend(name_list)
 
     for name in annotation_metrics_list:
-        data_dict.update({name: metrics_dict[name]})
+        data_dict.update({name: float(metrics_dict[name])})
     
     fn = f"{args.sample}.{ASSAY}.annotation.stats.json"
     utils.write_json(data_dict, fn)

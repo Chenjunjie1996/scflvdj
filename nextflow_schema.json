@@ -77,8 +77,8 @@
                 }
             }
         },
-        "match_options": {
-            "title": "MATCH options",
+        "summarize_options": {
+            "title": "SUMMARIZE options",
             "type": "object",
             "description": "",
             "default": "",

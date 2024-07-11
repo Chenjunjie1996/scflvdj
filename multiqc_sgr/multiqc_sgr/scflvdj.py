@@ -108,13 +108,53 @@ class MultiqcModule(BaseMultiqcModule):
                 "suffix": "%",
                 "scale": "green",
             },
+            "Reads Mapped To TRA": {
+                "title": "Reads Mapped To TRA",
+                "description": "Percent of reads mapped to TRA",
+                "max": 100,
+                "min": 0,
+                "suffix": "%",
+                "scale": "green",
+            },
+            "Reads Mapped To TRB": {
+                "title": "Reads Mapped To TRB",
+                "description": "Percent of reads mapped to TRB",
+                "max": 100,
+                "min": 0,
+                "suffix": "%",
+                "scale": "green",
+            },
+            "Reads Mapped To Any V(D)J Genes": {
+                "title": "Reads Mapped To IGH",
+                "description": "Percent of reads mapped to IGH",
+                "max": 100,
+                "min": 0,
+                "suffix": "%",
+                "scale": "green",
+            },
+            "Reads Mapped To IGL": {
+                "title": "Reads Mapped To IGL",
+                "description": "Percent of reads mapped to IGL",
+                "max": 100,
+                "min": 0,
+                "suffix": "%",
+                "scale": "green",
+            },
+            "Reads Mapped To IGK": {
+                "title": "Reads Mapped To IGK",
+                "description": "Percent of reads mapped to IGK",
+                "max": 100,
+                "min": 0,
+                "suffix": "%",
+                "scale": "green",
+            },
             "Estimated Number of Cells": {
                 "title": "Number of Cells",
                 "description": "Estimated number of cells",
                 "scale": "blue",
                 "format": "{:,.0f}",
             },
-            "Fraction of Reads in Cells": {
+            "Fraction Reads in Cells": {
                 "title": "Reads in Cells",
                 "description": "Percent of unique reads in cells",
                 "max": 100,
@@ -122,43 +162,43 @@ class MultiqcModule(BaseMultiqcModule):
                 "suffix": "%",
                 "scale": "green",
             },
-            "Mean Read Pairs per Cell": {
+            "Mean Reads per Cell": {
                 "title": "Mean Reads",
                 "description": "Mean number of reads per cell",
                 "scale": "blue",
                 "format": "{:,.0f}",
             },
-            "Mean Used Read Pairs per Cell": {
+            "Mean Used Reads per Cell": {
                 "title": "Mean Used Read",
                 "description": "Mean number of reads used per cell",
                 "scale": "blue",
                 "format": "{:,.0f}",
             },
-            "Median TRA UMIs per Cell": {
+            "Median Used TRA UMIs per Cell": {
                 "title": "Median TRA UMIs per Cell",
                 "description": "Median number of TRA umis per cell",
                 "scale": "green",
                 "format": "{:,.0f}",
             },
-            "Median TRB UMIs per Cell": {
+            "Median Used TRB UMIs per Cell": {
                 "title": "Median TRB UMIs per Cell",
                 "description": "Median number of TRB umis per cell",
                 "scale": "green",
                 "format": "{:,.0f}",
             },
-            "Median IGH UMIs per Cell": {
+            "Median Used IGH UMIs per Cell": {
                 "title": "Median IGH UMIs per Cell",
                 "description": "Median number of IGH umis per cell",
                 "scale": "green",
                 "format": "{:,.0f}",
             },
-            "Median IGK UMIs per Cell": {
+            "Median Used IGK UMIs per Cell": {
                 "title": "Median IGK UMIs per Cell",
                 "description": "Median number of IGK umis per cell",
                 "scale": "green",
                 "format": "{:,.0f}",
             },
-            "Median IGL UMIs per Cell": {
+            "Median Used IGL UMIs per Cell": {
                 "title": "Median IGL UMIs per Cell",
                 "description": "Median number of IGL umis per cell",
                 "scale": "green",
