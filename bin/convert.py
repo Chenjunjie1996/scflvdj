@@ -71,7 +71,7 @@ def write_fq1(sgr_tenx, fq2, sample):
 
 def gzip_fq2(fq2, sample):
     out_fq2_file = f"{sample}_convert_fq/{sample}_S1_L001_R2_001.fastq.gz"
-    cmd = f"gzip -c {fq2} > {out_fq2_file}"
+    cmd = f"cp {fq2} {out_fq2_file}"
     os.system(cmd)
     
 
