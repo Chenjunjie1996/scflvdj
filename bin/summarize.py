@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
-import json
-import pandas as pd
-import pysam
-import os
 import argparse
+import json
+import os
 from collections import defaultdict
 
+import pandas as pd
+import pysam
 import utils
 from __init__ import ASSAY
-
 
 MAX_CELL = 2 * 10**5
 
@@ -66,29 +65,28 @@ def get_umi_count(bcs, umis, cell_barcodes, sample):
 
 def barcode_rank_plot(sample, df_annotation, bam, tenx_sgr):
     dic_umi = defaultdict(set)
-        
+
     with pysam.AlignmentFile(bam) as fh:
         for read in fh:
-            cb = read.get_tag('CB')
-            umi = read.get_tag('UB')
+            cb = read.get_tag("CB")
+            umi = read.get_tag("UB")
         dic_umi[cb].add(umi)
 
     df_umi = pd.DataFrame()
-    df_umi['barcode'] = list(dic_umi.keys())
-    df_umi['UMI'] = [len(dic_umi[i]) for i in dic_umi]
-    df_umi = df_umi.sort_values(by='UMI', ascending=False)
-    cbs = set(df_annotation['barcode'])
-    df_umi['mark'] = df_umi['barcode'].apply(lambda x: 'CB' if x in cbs else 'UB')
-    df_umi['barcode'] = df_umi['barcode'].apply(lambda x : tenx_sgr[x.split('-')[0]])
-    df_umi.to_csv(f"{sample}.count.txt", sep='\t', index=False)
-    
+    df_umi["barcode"] = list(dic_umi.keys())
+    df_umi["UMI"] = [len(dic_umi[i]) for i in dic_umi]
+    df_umi = df_umi.sort_values(by="UMI", ascending=False)
+    cbs = set(df_annotation["barcode"])
+    df_umi["mark"] = df_umi["barcode"].apply(lambda x: "CB" if x in cbs else "UB")
+    df_umi["barcode"] = df_umi["barcode"].apply(lambda x: tenx_sgr[x.split("-")[0]])
+    df_umi.to_csv(f"{sample}.count.txt", sep="\t", index=False)
+
     plot_data = get_umi_count(df_umi["barcode"], df_umi["UMI"], cbs, sample)
 
     return plot_data
- 
- 
+
+
 def gen_vdj_metric(sample, metrics_csv, df_annotation, seqtype):
-    
     df = pd.read_csv(metrics_csv, index_col=None)
     metrics_dict = df.T.to_dict()[0]
 
@@ -101,13 +99,13 @@ def gen_vdj_metric(sample, metrics_csv, df_annotation, seqtype):
 
     data_dict = {}
     for k, v in metrics_dict.items():
-        metrics_dict[k] = str(v).replace(',', '').replace('%', '')
+        metrics_dict[k] = str(v).replace(",", "").replace("%", "")
     # mapping
     mapping_metrics_list = ["Reads Mapped to Any V(D)J Gene"]
     for chain in chains:
         name = f"Reads Mapped to {chain}"
         mapping_metrics_list.append(name)
-        
+
     for name in mapping_metrics_list:
         data_dict.update({name: float(metrics_dict[name])})
 
@@ -116,14 +114,14 @@ def gen_vdj_metric(sample, metrics_csv, df_annotation, seqtype):
         "Estimated Number of Cells",
         "Fraction Reads in Cells",
         "Mean Read Pairs per Cell",
-        "Mean Used Read Pairs per Cell"
+        "Mean Used Read Pairs per Cell",
     ]
     for name in cell_metrics_list:
         data_dict.update({name: float(metrics_dict[name])})
-        
+
     for chain in chains:
         name = f"Median used {chain} UMIs per Cell"
-        median_value = df_annotation[df_annotation['chain']==chain]["umis"].median()
+        median_value = df_annotation[df_annotation["chain"] == chain]["umis"].median()
         if median_value == median_value:
             value = int(median_value)
         else:
@@ -140,31 +138,31 @@ def gen_vdj_metric(sample, metrics_csv, df_annotation, seqtype):
         chain1, chain2 = pair.split("_")[0], pair.split("_")[1]
         name = f"Cells With Productive V-J Spanning ({chain1}, {chain2}) Pair"
         annotation_metrics_list.append(name)
-           
+
     for chain in chains:
         name_list = [
             f"Cells With {chain} Contig",
             f"Cells With CDR3-annotated {chain} Contig",
             f"Cells With V-J Spanning {chain} Contig",
-            f"Cells With Productive {chain} Contig"
+            f"Cells With Productive {chain} Contig",
         ]
         annotation_metrics_list.extend(name_list)
 
     for name in annotation_metrics_list:
         data_dict.update({name: float(metrics_dict[name])})
-    
+
     fn = f"{sample}.{ASSAY}.annotation.stats.json"
     utils.write_json(data_dict, fn)
-    
-    
+
+
 def convert_barcode_to_sgr(sample, tenx_sgr, df_annotation, contig_fasta, clonotype_csv):
-        
     df_annotation["barcode"] = df_annotation["barcode"].apply(lambda x: tenx_sgr[x.split("-")[0]])
-    df_annotation["contig_id"] = df_annotation["contig_id"].apply(lambda x: 
-        tenx_sgr[x.split("-")[0]]+ "_" + x.split("_")[1] +"_" + x.split("_")[2])
+    df_annotation["contig_id"] = df_annotation["contig_id"].apply(
+        lambda x: tenx_sgr[x.split("-")[0]] + "_" + x.split("_")[1] + "_" + x.split("_")[2]
+    )
 
     df_annotation.to_csv(f"{sample}_filtered_contig.csv", sep=",", index=False)
-    
+
     tenx_fasta_fh = pysam.FastxFile(contig_fasta)
     with open(f"{sample}_filtered_contig.fasta", "w") as f:
         for entry in tenx_fasta_fh:
@@ -173,7 +171,7 @@ def convert_barcode_to_sgr(sample, tenx_sgr, df_annotation, contig_fasta, clonot
             attrs = name.split("_")
             new_name = tenx_sgr[attrs[0].split("-")[0]] + "_" + attrs[1] + "_" + attrs[2]
             f.write(f">{new_name}\n{seq}\n")
-        
+
     cmd = f"cp {clonotype_csv} {sample}_clonotypes.csv"
     os.system(cmd)
 
@@ -191,12 +189,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     df_annotation = pd.read_csv(args.annot_csv, sep=",", index_col=None)
-    with open(args.barcode_convert_json, "r") as f:
+    with open(args.barcode_convert_json) as f:
         tenx_sgr = json.load(f)
-   
+
     convert_barcode_to_sgr(args.sample, tenx_sgr, df_annotation, args.contig_fasta, args.clonotype_csv)
     gen_vdj_metric(args.sample, args.metrics_csv, df_annotation, args.seqtype)
-    
+
     plot_data = barcode_rank_plot(args.sample, df_annotation, args.bam, tenx_sgr)
     fn = f"{args.sample}.{ASSAY}.umi_count.json"
-    utils.write_json(plot_data, fn) 
+    utils.write_json(plot_data, fn)

@@ -100,5 +100,5 @@ def format_value(value, total=None):
 
 
 def dump_dict_to_json(d, json_file):
-    with open(json_file, 'w') as f:
+    with open(json_file, "w") as f:
         json.dump(d, f, indent=4)

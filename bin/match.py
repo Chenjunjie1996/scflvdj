@@ -1,26 +1,28 @@
 #!/usr/bin/env python
 
-import pandas as pd
-import pysam
 import argparse
 
+import pandas as pd
+import pysam
 import utils
 from __init__ import ASSAY
+
 
 def gen_vdj_metric(df, seqtype):
     """
     Add vdj metrics.
     """
+
     def get_vj_spanning_pair():
         """
         Get Productive V-J Spanning_Pair metric from annotation file
         Return productive chain pair number. eg: TRA/TRB or IGH/IGL, IGH/IGK.
         """
         df_productive = df[df["productive"]]
-        
+
         if seqtype == "BCR":
-            df_chain_heavy = df_productive[(df_productive["chain"] == "IGH")] 
-            df_chain_light = df_productive[(df_productive["chain"] == "IGL") | (df_productive["chain"] =="IGK")]
+            df_chain_heavy = df_productive[(df_productive["chain"] == "IGH")]
+            df_chain_light = df_productive[(df_productive["chain"] == "IGL") | (df_productive["chain"] == "IGK")]
         else:
             df_chain_heavy = df_productive[df_productive["chain"] == "TRA"]
             df_chain_light = df_productive[df_productive["chain"] == "TRB"]
@@ -29,26 +31,26 @@ def gen_vdj_metric(df, seqtype):
             _df.drop_duplicates(["barcode"], inplace=True)
 
         vj_spanning_pair_cells = pd.merge(df_chain_heavy, df_chain_light, on="barcode", how="inner")
-        
+
         return vj_spanning_pair_cells.shape[0]
 
     data_dict = {}
-    
+
     if seqtype == "BCR":
         chains = ["IGH", "IGL", "IGK"]
         chain_pairs = ["IGK_IGH", "IGL_IGH"]
     else:
         chains = ["TRA", "TRB"]
         chain_pairs = ["TRA_TRB"]
-    
+
     cell_nums = len(set(df["barcode"]))
     data_dict.update({"Cells Match with ScRNA-seq": cell_nums})
     data_dict = {"Cells With Productive V-J Spanning Pair": utils.get_frac(get_vj_spanning_pair() / cell_nums)}
 
     for pair in chain_pairs:
         chain1, chain2 = pair.split("_")[0], pair.split("_")[1]
-        cbs1 = set(df[(df["productive"]) & (df["chain"]==chain1)].barcode)
-        cbs2 = set(df[(df["productive"]) & (df["chain"]==chain2)].barcode)
+        cbs1 = set(df[(df["productive"]) & (df["chain"] == chain1)].barcode)
+        cbs2 = set(df[(df["productive"]) & (df["chain"] == chain2)].barcode)
         paired_cbs = len(cbs1.intersection(cbs2))
         data_dict.update(
             {f"Cells With Productive V-J Spanning ({chain1}, {chain2}) Pair": utils.get_frac(paired_cbs / cell_nums)}
@@ -71,7 +73,6 @@ def gen_vdj_metric(df, seqtype):
 
 
 def gen_matched_result(sample, annot_csv, contig_fasta, match_cell_barcodes):
-
     df_annotation = pd.read_csv(annot_csv)
     df_match = df_annotation[df_annotation.barcode.isin(match_cell_barcodes)]
     df_match.to_csv(f"{sample}_matched_contig.csv", sep=",", index=False)
@@ -87,23 +88,28 @@ def gen_matched_result(sample, annot_csv, contig_fasta, match_cell_barcodes):
             seq = entry.sequence
             match_fasta.write(f">{new_name}\n{seq}\n")
     match_fasta.close()
-    
+
     return df_match
 
 
 def gen_matched_clonotypes(sample, df_match, clonotype_csv):
-
-    raw_clonotypes= pd.read_csv(clonotype_csv, sep=",", index_col=None)
+    raw_clonotypes = pd.read_csv(clonotype_csv, sep=",", index_col=None)
     raw_clonotypes.drop(["frequency", "proportion"], axis=1, inplace=True)
     df_match = df_match[df_match["productive"]]
-        
+
     # Count frequency and proportion
-    df_match = df_match.rename(columns={"raw_clonotype_id":"clonotype_id"})\
-        .dropna(subset=["clonotype_id"]).groupby("clonotype_id")["barcode"].nunique().to_frame()\
-            .reset_index().rename(columns={"barcode": "frequency"})\
-                .sort_values("clonotype_id", key=lambda x: x.str.lstrip("clonotype").astype(int))
+    df_match = (
+        df_match.rename(columns={"raw_clonotype_id": "clonotype_id"})
+        .dropna(subset=["clonotype_id"])
+        .groupby("clonotype_id")["barcode"]
+        .nunique()
+        .to_frame()
+        .reset_index()
+        .rename(columns={"barcode": "frequency"})
+        .sort_values("clonotype_id", key=lambda x: x.str.lstrip("clonotype").astype(int))
+    )
     df_match["proportion"] = df_match["frequency"] / df_match["frequency"].sum()
-        
+
     df_match = pd.merge(df_match, raw_clonotypes, on="clonotype_id")
     df_match.to_csv(f"{sample}_matched_clonotypes.csv", sep=",", index=False)
 
@@ -124,11 +130,10 @@ if __name__ == "__main__":
     else:
         chains = ["TRA", "TRB"]
         paired_groups = ["TRA_TRB"]
-    
+
     match_barcode = set(utils.read_one_col(args.match_barcode_file))
     df_match = gen_matched_result(args.sample, args.annot_csv, args.contig_fasta, match_barcode)
     gen_matched_clonotypes(args.sample, df_match, args.clonotype_csv)
     data_dict = gen_vdj_metric(df_match, args.seqtype)
     fn = f"{args.sample}.{ASSAY}.match.stats.json"
     utils.write_json(data_dict, fn)
-    

@@ -1,14 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import random
-from collections import defaultdict
 
 import parse_protocol
 import pyfastx
 import utils
 from __init__ import ASSAY
-
 
 SPLIT_N_CHUNKS = 4
 
