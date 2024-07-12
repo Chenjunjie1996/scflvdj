@@ -124,14 +124,6 @@ class MultiqcModule(BaseMultiqcModule):
                 "suffix": "%",
                 "scale": "green",
             },
-            "Reads Mapped To Any V(D)J Genes": {
-                "title": "Reads Mapped To IGH",
-                "description": "Percent of reads mapped to IGH",
-                "max": 100,
-                "min": 0,
-                "suffix": "%",
-                "scale": "green",
-            },
             "Reads Mapped To IGL": {
                 "title": "Reads Mapped To IGL",
                 "description": "Percent of reads mapped to IGL",

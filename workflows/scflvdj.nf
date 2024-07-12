@@ -107,7 +107,7 @@ workflow scflvdj {
         params.seqtype,
         ch_merge
     )
-    ch_multiqc_files = ch_multiqc_files.mix(SUMMARIZE.out.json.collect{it[1]})
+    ch_multiqc_files = ch_multiqc_files.mix(MATCH.out.json.collect{it[1]})
 
     //
     // Collate and save software versions

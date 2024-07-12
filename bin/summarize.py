@@ -87,7 +87,7 @@ def barcode_rank_plot(sample, df_annotation, bam, tenx_sgr):
     return plot_data
  
  
-def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
+def gen_vdj_metric(sample, metrics_csv, df_annotation, seqtype):
     
     df = pd.read_csv(metrics_csv, index_col=None)
     metrics_dict = df.T.to_dict()[0]
@@ -130,7 +130,7 @@ def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
             value = 0
         data_dict.update({name: value})
 
-    fn = f"{args.sample}.{ASSAY}.summarize.stats.json"
+    fn = f"{sample}.{ASSAY}.summarize.stats.json"
     utils.write_json(data_dict, fn)
 
     # annotation
@@ -153,7 +153,7 @@ def gen_vdj_metric(metrics_csv, df_annotation, seqtype):
     for name in annotation_metrics_list:
         data_dict.update({name: float(metrics_dict[name])})
     
-    fn = f"{args.sample}.{ASSAY}.annotation.stats.json"
+    fn = f"{sample}.{ASSAY}.annotation.stats.json"
     utils.write_json(data_dict, fn)
     
     
@@ -195,7 +195,7 @@ if __name__ == "__main__":
         tenx_sgr = json.load(f)
    
     convert_barcode_to_sgr(args.sample, tenx_sgr, df_annotation, args.contig_fasta, args.clonotype_csv)
-    gen_vdj_metric(args.metrics_csv, df_annotation, args.seqtype)
+    gen_vdj_metric(args.sample, args.metrics_csv, df_annotation, args.seqtype)
     
     plot_data = barcode_rank_plot(args.sample, df_annotation, args.bam, tenx_sgr)
     fn = f"{args.sample}.{ASSAY}.umi_count.json"

@@ -9,7 +9,7 @@ process CELLRANGER {
     path  reference
 
     output:
-    // tuple val(meta), path("**/outs/**"), emit: outs
+    tuple val(meta), path("${meta.id}/outs/**"), emit: cr_outs
     tuple val(meta), path("${meta.id}/outs/metrics_summary.csv"), emit: summary
     tuple val(meta), path("${meta.id}/outs/clonotypes.csv"), emit: clonotype
     tuple val(meta), path("${meta.id}/outs/filtered_contig_annotations.csv"), emit: annotation
