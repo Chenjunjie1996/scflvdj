@@ -10,10 +10,8 @@
 # Main output
 
 - `multiqc/multiqc_report.html` HTML report containing QC metrics.
-- `summarize/{sample}_all_contig.csv` Detailed annotations for each contig.
-- `summarize/{sample}_all_contig.fasta` All assembled contig sequences.
-- `summarize/{sample}_filtered_contig.csv` Annotations of each cellular contig after filter.
-- `summarize/{sample}_filtered_contig.fasta` Assembled contig sequences after filter.
+- `summarize/{sample}_filtered_contig.csv` Annotations of each cellular contig.
+- `summarize/{sample}_filtered_contig.fasta` Assembled cellular contig sequences.
 - `summarize/{sample}_clonotypes.csv` Description for each clonotype.
 
 # Modules
@@ -25,35 +23,26 @@ Extract the barcode from R1 fastqs and add the barcode to the read names of R1 a
 **Output files** 
 - `{sample}.{R1,R2}.fq.gz` Fastq files with barcodes added.
 
-## imgt_download
+## convert
+
+Convert barcodes and UMI to 10X format..
+
+**Output files** 
+- `{sample}_S1_L001_R1_001.fastq.gz` New R1 reads as cellranger input.
+- `{sample}_S1_L001_R2_001.fastq.gz` New R2 reads as cellranger input.
+
+## mkvdjref
 
 Build custom V,J,C gene database.
 
 **Output files** 
-- `IMGT+C.fa` V,J,C gene Fasta file.
-
-## trust4
-
-TRUST4 performs de novo assembly on V, J, C genes including the hypervariable complementarity-determining region 3 (CDR3) and reports consensus contigs of BCR/TCR sequences. TRUST4 then realigns the contigs to IMGT reference gene sequences to identify the corresponding gene and CDR3 details. Details can be found [here](https://github.com/liulab-dfci/TRUST4)
-
-**Output files** 
-- `{sample}_cdr3.out` CDR3 and gene information.
-- `{sample}_assign.out` Reads assignment results.
-- `{sample}_assembled_reads.fa` Assembled reads sequence.
-- `{sample}_annot.fa` Assembled annotated contig sequences info.
-- `{sample}_report.tsv` Record CDR3 types, read count and proportion.
-- `{sample}_filter_report.tsv` Filter non-functional CDR3 result.
-- `{sample}_barcode_report.tsv` Record chain information for each barcode.
-- `{sample}_barcode_airr.tsv` Barcode report in [AIRR format](https://docs.airr-community.org/en/latest/datarep/rearrangements.html).
-- `{sample}_airr.tsv` Annotation in [AIRR format](https://docs.airr-community.org/en/latest/datarep/rearrangements.html).
+- Reference directory as cellranger input.
 
 ## summarize
 
 Summarize and filter from trust4 result files.
 
 **Output files** 
-- `{sample}_all_contig.csv` Detailed annotations for each contig.
-- `{sample}_all_contig.fasta` All assembled contig sequences.
 - `{sample}_filtered_contig.csv` Annotations of each cellular contig after filter.
 - `{sample}_filtered_contig.fasta` Assembled contig sequences after filter.
 - `{sample}_clonotypes.csv` Description for each clonotype.
@@ -65,6 +54,7 @@ Match with scRNA-Seq library.
 **Output files** 
 - `{sample}_matched_contig.csv` Annotations of each cellular contig matched with scRNA-seq.
 - `{sample}_matched_contig.fasta` Assembled Contig sequences matched with scRNA-seq.
+- `{sample}_clonotypes.csv` Description for each clonotype after match.
 
 ## multiqc-sgr
 

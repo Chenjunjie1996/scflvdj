@@ -67,7 +67,7 @@ mouse_TCR/
 The typical command for running the pipeline is as follows:
 
 ```bash
-nextflow run singleron-RD/scflvdj \
+nextflow run Chenjunjie1996/scflvdj \
  --input ./samplesheet.csv \
  --outdir ./results \
  --imgt_name Mus_musculus \
