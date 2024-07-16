@@ -41,7 +41,7 @@ Build custom V,J,C gene database.
 
 ## summarize
 
-Summarize and filter from trust4 result files.
+Summarize result files.
 
 **Output files** 
 - `{sample}_filtered_contig.csv` Annotations of each cellular contig after filter.

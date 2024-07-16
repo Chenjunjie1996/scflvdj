@@ -29,7 +29,7 @@ Define where the pipeline should find input data and save output data.
 |-----------|-----------|-----------|-----------|-----------|-----------|
 | `protocol` | Predefined pattern and whitelist. Currently only support GEXSCOPE-FLVDJ-V1 | `string` | GEXSCOPE-FLVDJ-V1 |  |  |
 
-## MATCH
+## SUMMARIZE and MATCH
 
 
 
