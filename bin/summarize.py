@@ -70,7 +70,7 @@ def barcode_rank_plot(sample, df_annotation, bam, tenx_sgr):
         for read in fh:
             cb = read.get_tag("CB")
             umi = read.get_tag("UB")
-        dic_umi[cb].add(umi)
+            dic_umi[cb].add(umi)
 
     df_umi = pd.DataFrame()
     df_umi["barcode"] = list(dic_umi.keys())
