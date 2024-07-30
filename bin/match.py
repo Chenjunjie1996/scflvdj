@@ -45,7 +45,7 @@ def gen_vdj_metric(df, seqtype):
 
     cell_nums = len(set(df["barcode"]))
     data_dict.update({"Cells Match with ScRNA-seq": cell_nums})
-    data_dict = {"Cells With Productive V-J Spanning Pair": utils.get_frac(get_vj_spanning_pair() / cell_nums)}
+    data_dict.update({"Cells With Productive V-J Spanning Pair": utils.get_frac(get_vj_spanning_pair() / cell_nums)})
 
     for pair in chain_pairs:
         chain1, chain2 = pair.split("_")[0], pair.split("_")[1]
