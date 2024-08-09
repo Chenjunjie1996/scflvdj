@@ -60,7 +60,7 @@ if __name__ == "__main__":
     raw_reads = 0
     valid_reads = 0
     corrected_reads = 0
-    total_umi_set = list(itertools.product('ATCG', repeat=9))
+    total_umi_set = list(itertools.product('ATCGN', repeat=9))
     total_umi_set = set("".join(x) for x in total_umi_set)
     
     # 遍历第一个文库，查找umi
