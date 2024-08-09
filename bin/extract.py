@@ -4,6 +4,8 @@ import argparse
 
 import parse_protocol
 import pyfastx
+import itertools
+import random
 import utils
 from __init__ import ASSAY
 
@@ -58,24 +60,58 @@ if __name__ == "__main__":
     raw_reads = 0
     valid_reads = 0
     corrected_reads = 0
-    for fq1, fq2 in zip(fq1_list, fq2_list):
-        fq1 = pyfastx.Fastx(fq1)
-        fq2 = pyfastx.Fastx(fq2)
+    total_umi_set = list(itertools.product('ATCG', repeat=9))
+    total_umi_set = set("".join(x) for x in total_umi_set)
+    
+    # 遍历第一个文库，查找umi
+    fq1 = pyfastx.Fastx(fq1_list[0])
+    fq2 = pyfastx.Fastx(fq2_list[0])
+    used_umi_set = set()
+    for (name1, seq1, qual1), (name2, seq2, qual2) in zip(fq1, fq2):
+        raw_reads += 1
+        bc_list = [utils.rev_compl(seq1[x]) for x in pattern_dict["C"]][::-1]
+        valid, corrected, corrected_seq = parse_protocol.check_seq_mismatch(bc_list, raw_list, mismatch_list)
+        if valid:
+            valid_reads += 1
+            if corrected:
+                corrected_reads += 1
+            umi = parse_protocol.get_seq_str(seq1, pattern_dict["U"])
+            bc = corrected_seq
+            read_name = f"{bc}:{umi}:{raw_reads}"
+            qual1 = "F" * len(bc + umi)
+            outdict[1].write(utils.fastq_str(read_name, bc + umi, qual1))
+            outdict[2].write(utils.fastq_str(read_name, seq2, qual2))
+            used_umi_set.add(umi)
+    
+    # 用未出现在第一个文库的umi替换第二个文库的umi，得到替换umi的字典
+    diff_umi_list = list(total_umi_set - used_umi_set)
+    random.shuffle(diff_umi_list)
+    umi_dict = {}
+    fq1 = pyfastx.Fastx(fq1_list[1])
+    for (name1, seq1, qual1) in fq1:
+        umi = parse_protocol.get_seq_str(seq1, pattern_dict["U"])
+        if umi not in umi_dict:
+            umi_dict[umi] = diff_umi_list.pop()
+    
+    # 遍历第二个文库
+    fq1 = pyfastx.Fastx(fq1_list[1])
+    fq2 = pyfastx.Fastx(fq2_list[1])
 
-        for (name1, seq1, qual1), (name2, seq2, qual2) in zip(fq1, fq2):
-            raw_reads += 1
-            bc_list = [utils.rev_compl(seq1[x]) for x in pattern_dict["C"]][::-1]
-            valid, corrected, corrected_seq = parse_protocol.check_seq_mismatch(bc_list, raw_list, mismatch_list)
-            if valid:
-                valid_reads += 1
-                if corrected:
-                    corrected_reads += 1
-                umi = parse_protocol.get_seq_str(seq1, pattern_dict["U"])
-                bc = corrected_seq
-                read_name = f"{bc}:{umi}:{raw_reads}"
-                qual1 = "F" * len(bc + umi)
-                outdict[1].write(utils.fastq_str(read_name, bc + umi, qual1))
-                outdict[2].write(utils.fastq_str(read_name, seq2, qual2))
+    for (name1, seq1, qual1), (name2, seq2, qual2) in zip(fq1, fq2):
+        raw_reads += 1
+        bc_list = [utils.rev_compl(seq1[x]) for x in pattern_dict["C"]][::-1]
+        valid, corrected, corrected_seq = parse_protocol.check_seq_mismatch(bc_list, raw_list, mismatch_list)
+        if valid:
+            valid_reads += 1
+            if corrected:
+                corrected_reads += 1
+            umi = parse_protocol.get_seq_str(seq1, pattern_dict["U"])
+            new_umi = umi_dict[umi]
+            bc = corrected_seq
+            read_name = f"{bc}:{new_umi}:{raw_reads}"
+            qual1 = "F" * len(bc + umi)
+            outdict[1].write(utils.fastq_str(read_name, bc + new_umi, qual1))
+            outdict[2].write(utils.fastq_str(read_name, seq2, qual2))
 
     outdict[1].close()
     outdict[2].close()
